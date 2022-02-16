@@ -5,8 +5,8 @@ const pool = new Pool()
 const query = promisify(pool.query).bind(pool)
 const utils = require("./utils")
 
-// ========== MUST MODIFY ==========
-const PARTITION_SIZE = 0
+// ========== VERIFY ==========
+const PARTITION_SIZE = 100000
 
 
 async function Transactions(txRows) {

@@ -9,6 +9,9 @@ const Create = require("./create")
 const Insert = require("./insert")
 const utils = require("./utils")
 
+// ========== VERIFY ==========
+const LIMIT = 100
+
 async function migrate() {
     const {rows} = await query("SELECT COUNT(*) FROM transaction")
     const totolRowCount = rows[0].count
@@ -17,19 +20,16 @@ async function migrate() {
     await Create.NewMsgTable()
   
     let stop = false
-    const limit = 100
     let offset = 0
-
     while(stop != true) {
 
-      const txRows = await utils.selectFromOldTxTable(limit, offset)
-      const insertResult = await Insert.Transactions(txRows)
+      const txRows = await utils.selectFromOldTxTable(LIMIT, offset)
+      await Insert.Transactions(txRows)
   
-      offset += limit
+      offset += LIMIT
       if (offset >= totolRowCount) {
         stop = true
       }
-      
     }
 } 
 
