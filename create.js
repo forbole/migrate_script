@@ -5,7 +5,7 @@ const pool = new Pool()
 const query = promisify(pool.query).bind(pool)
 
 async function NewTxTable() {
-    console.log("create new tx table");
+    console.log("create new tx table\n");
 
     await query(`CREATE TABLE transaction_new
       (
@@ -39,7 +39,7 @@ async function NewTxTable() {
   }
   
   async function NewMsgTable() {
-    console.log("create new msg table");
+    console.log("create new msg table\n");
 
     await query(`CREATE TABLE message_new
     (

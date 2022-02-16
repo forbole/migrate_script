@@ -33,19 +33,18 @@ async function Transactions(txRows) {
     let params = []
     let forMessages = []
 
-
     for (let row of txRows) {
       let {
         hash, height, success, messages, memo, signatures, 
         signer_infos, fee, gas_wanted, gas_used, raw_log, logs
       } = row
 
-      console.log("inserting tx of height: ", height);
+    //   console.log("inserting tx of height: ", height);
 
       let partitionId = Math.floor(height/PARTITION_SIZE)
       let partitionTable = `transaction_new_${partitionId}`
       if (existTxPartition[partitionTable] != true){
-          console.log("create partition table if not exists: ", partitionTable);
+          console.log("create partition table: ", partitionTable);
           await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction_new FOR VALUES IN (${partitionId})`)
 
           existTxPartition[partitionTable] = true
@@ -66,17 +65,10 @@ async function Transactions(txRows) {
   
     // Insert transaction
     await query(stmt, params)
-    await insertMessagesArray(forMessages)    
+    await insertMessagesArray(forMessages)
   }
 
   async function insertMessagesArray(MessagesArray) {
-      for(let messages of MessagesArray) {
-          await insertMessages(messages[0], messages[1], messages[2], messages[3])
-      }
-  }
-  
-  async function insertMessages(messagesArray, hash, height, partitionId) {
-    console.log("inserting msg of height: ", height);
 
     // Prepare stmt
     let stmt = `INSERT INTO message_new 
@@ -84,43 +76,49 @@ async function Transactions(txRows) {
     VALUES `
     const cols = 7
     
-    for (let i in messagesArray) {
-      stmt += "("
-      let start = i * cols + 1
-      let end = start + cols
-      for (let j = start; j < end; j++) {
-        stmt += `$${j},`
-      }
-      stmt = stmt.slice(0, -1) // remove trailing
-      stmt += "),"
+    let params = []
+    let msgNumberCounter = 0
+    for (let i in MessagesArray) {
+        let messages = MessagesArray[i][0]
+        let hash = MessagesArray[i][1]
+        let height = MessagesArray[i][2]
+        let partitionId = MessagesArray[i][3]
+
+        // Create msg partition tables
+        let partitionTable = `message_new_${MessagesArray[i][3]}`
+        if (existMsgPartition[partitionTable] != true) {
+            console.log("create partition table: ", partitionTable);
+            await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_new FOR VALUES IN (${MessagesArray[i][3]})`)
+            existMsgPartition[partitionTable] = true
+        }
+
+        for (let j in messages) {
+            // for stmt
+            let start = msgNumberCounter * cols + 1
+            let end = start + cols
+            stmt += "("
+            for(let k = start; k < end; k++) {
+                    stmt += `$${k},`
+            }
+            stmt = stmt.slice(0, -1) // remove trailing
+            msgNumberCounter += 1
+
+            // for params
+            let msg = MessagesArray[i][0][j]
+            let type = msg["@type"].substring(1) // remove "/" from the start
+            let involvedAddresses = utils.messageParser(msg)
+
+            delete msg["@type"]
+            params = params.concat([hash, j, type, msg, involvedAddresses, partitionId, height])
+            // console.log("inserting msg of height:", MessagesArray[i][2]);
+            stmt += "),"
+        }
     }
     stmt = stmt.slice(0, -1) // remove trailing
-  
-    // Partition
-    let partitionTable = `message_new_${partitionId}`
-    if (existMsgPartition[partitionTable] != true) {
-        console.log("create partition table if not exists: ", partitionTable);
-        await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_new FOR VALUES IN (${partitionId})`)
-        existMsgPartition[partitionTable] = true
-    }
-  
-    // Prepare params
-    let params = []
-    for(let i in messagesArray) {
-        let msg = messagesArray[i]
-        let type = msg["@type"].substring(1) // remove "/" from the start
-      let involvedAddresses = utils.messageParser(msg)
-  
-      delete msg["@type"]
-      params = params.concat(
-        [hash, i, type, JSON.stringify(msg), involvedAddresses, partitionId, height]
-      )
-    }
-  
-    // Insert messages
     await query(stmt, params)
   }
 
   module.exports = {
       Transactions,
+      PARTITION_SIZE,
   }
