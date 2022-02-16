@@ -8,6 +8,8 @@ const utils = require("./utils")
 // ========== VERIFY ==========
 const PARTITION_SIZE = 100000
 
+const existTxPartition = {}
+const existMsgPartition = {}
 
 async function Transactions(txRows) {
     // Prepare stmt
@@ -30,6 +32,8 @@ async function Transactions(txRows) {
     // Prepare params
     let params = []
     let forMessages = []
+
+
     for (let row of txRows) {
       let {
         hash, height, success, messages, memo, signatures, 
@@ -40,8 +44,12 @@ async function Transactions(txRows) {
 
       let partitionId = Math.floor(height/PARTITION_SIZE)
       let partitionTable = `transaction_new_${partitionId}`
-      console.log("create partition table if not exists: ", partitionTable);
-      await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction_new FOR VALUES IN (${partitionId})`)
+      if (existTxPartition[partitionTable] != true){
+          console.log("create partition table if not exists: ", partitionTable);
+          await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction_new FOR VALUES IN (${partitionId})`)
+
+          existTxPartition[partitionTable] = true
+      }
   
       let sigs = ""
       signatures.forEach(el => sigs += el + ",")
@@ -75,6 +83,7 @@ async function Transactions(txRows) {
     (transaction_hash, index, type, value, involved_accounts_addresses, partition_id, height) 
     VALUES `
     const cols = 7
+    
     for (let i in messagesArray) {
       stmt += "("
       let start = i * cols + 1
@@ -89,8 +98,11 @@ async function Transactions(txRows) {
   
     // Partition
     let partitionTable = `message_new_${partitionId}`
-    console.log("create partition table if not exists: ", partitionTable);
-    await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_new FOR VALUES IN (${partitionId})`)
+    if (existMsgPartition[partitionTable] != true) {
+        console.log("create partition table if not exists: ", partitionTable);
+        await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_new FOR VALUES IN (${partitionId})`)
+        existMsgPartition[partitionTable] = true
+    }
   
     // Prepare params
     let params = []

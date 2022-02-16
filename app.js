@@ -9,7 +9,7 @@ const Insert = require("./insert")
 const utils = require("./utils")
 
 // ========== VERIFY ==========
-const LIMIT = 10
+const LIMIT = 500
 
 return migrate()
 
@@ -24,10 +24,9 @@ async function migrate() {
 
     const {rows} = await query("SELECT COUNT(*) FROM transaction")
     const totolRowCount = rows[0].count
-
-  
+ 
     let stop = false
-    let offset = 100
+    let offset = 0
     while(stop != true) {
 
       const txRows = await utils.selectFromOldTxTable(LIMIT, offset)
