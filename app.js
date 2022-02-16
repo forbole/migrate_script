@@ -19,7 +19,9 @@ async function migrate() {
     let stop = false
     const limit = 100
     let offset = 0
+
     while(stop != true) {
+
       const txRows = await utils.selectFromOldTxTable(limit, offset)
       const insertResult = await Insert.Transactions(txRows)
   
@@ -27,6 +29,7 @@ async function migrate() {
       if (offset >= totolRowCount) {
         stop = true
       }
+      
     }
 } 
 

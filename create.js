@@ -31,9 +31,9 @@ async function NewTxTable() {
           partition_id BIGINT NOT NULL PRIMARY KEY
   
       )PARTITION BY LIST(partition_id);
-      CREATE INDEX transaction_hash_index ON transaction (hash);
-      CREATE INDEX transaction_height_index ON transaction (height);
-      CREATE INDEX transaction_partition_id_index ON transaction (partition_id);`)
+      CREATE INDEX transaction_new_hash_index ON transaction_new (hash);
+      CREATE INDEX transaction_new_height_index ON transaction_new (height);
+      CREATE INDEX transaction_new_partition_id_index ON transaction_new (partition_id);`)
   }
   
   async function NewMsgTable() {
@@ -47,13 +47,15 @@ async function NewTxTable() {
           involved_accounts_addresses TEXT[] NOT NULL,
   
           /* Psql partition */
-          partition_id                BIGINT REFERENCES transaction (partition_id),
+          partition_id                BIGINT REFERENCES transaction_new (partition_id),
           height                      BIGINT NOT NULL
       )PARTITION BY LIST(partition_id);
-      CREATE INDEX message_transaction_hash_index ON message (transaction_hash);
-      CREATE INDEX message_type_index ON message (type);
-      CREATE INDEX message_involved_accounts_index ON message (involved_accounts_addresses);`)
+      CREATE INDEX message_new_transaction_hash_index ON message_new (transaction_hash);
+      CREATE INDEX message_new_type_index ON message_new (type);
+      CREATE INDEX message_new_involved_accounts_index ON message_new (involved_accounts_addresses);`)
   }
+
+  return NewMsgTable()
   
   module.exports = {
       NewTxTable,
