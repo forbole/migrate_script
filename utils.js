@@ -40,7 +40,7 @@ function messageParser(msg) {
     involvedAddresses = involvedAddresses.slice(0 , -1) + "}"
   
     if (involvedAddresses.length == 1) {
-      return ""
+      return "{}"
     }
   
     return involvedAddresses

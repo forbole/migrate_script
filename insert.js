@@ -29,14 +29,19 @@ async function Transactions(txRows) {
   
     // Prepare params
     let params = []
+    let forMessages = []
     for (let row of txRows) {
       let {
         hash, height, success, messages, memo, signatures, 
         signer_infos, fee, gas_wanted, gas_used, raw_log, logs
       } = row
-  
-      let partitionId = Math.ceil(height/PARTITION_SIZE)
-      await query(`CREATE TABLE IF NOT EXISTS transaction_${partitionId} PARTITION OF transaction FOR VALUES IN (${partitionId})`)
+
+      console.log("inserting tx of height: ", height);
+
+      let partitionId = Math.floor(height/PARTITION_SIZE)
+      let partitionTable = `transaction_new_${partitionId}`
+      console.log("create partition table if not exists: ", partitionTable);
+      await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction_new FOR VALUES IN (${partitionId})`)
   
       let sigs = ""
       signatures.forEach(el => sigs += el + ",")
@@ -47,16 +52,24 @@ async function Transactions(txRows) {
         fee, gas_wanted, gas_used, raw_log, JSON.stringify(logs), partitionId]
         )
   
-      // Insert messages of this transaction_hash
-      await insertMessages(messages, hash, height)
-      
+      // Prepare messages of relative transaction_hash
+      forMessages.push([messages, hash, height, partitionId])
     }
   
     // Insert transaction
     await query(stmt, params)
+    await insertMessagesArray(forMessages)    
+  }
+
+  async function insertMessagesArray(MessagesArray) {
+      for(let messages of MessagesArray) {
+          await insertMessages(messages[0], messages[1], messages[2], messages[3])
+      }
   }
   
-  async function insertMessages(messagesArray, hash, height) {
+  async function insertMessages(messagesArray, hash, height, partitionId) {
+    console.log("inserting msg of height: ", height);
+
     // Prepare stmt
     let stmt = `INSERT INTO message_new 
     (transaction_hash, index, type, value, involved_accounts_addresses, partition_id, height) 
@@ -75,18 +88,20 @@ async function Transactions(txRows) {
     stmt = stmt.slice(0, -1) // remove trailing
   
     // Partition
-    let partitionId = Math.ceil(height/PARTITION_SIZE)
-    await query(`CREATE TABLE IF NOT EXISTS message_${partitionId} PARTITION OF message FOR VALUES IN (${partitionId})`)
+    let partitionTable = `message_new_${partitionId}`
+    console.log("create partition table if not exists: ", partitionTable);
+    await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_new FOR VALUES IN (${partitionId})`)
   
     // Prepare params
     let params = []
     for(let i in messagesArray) {
-      let msg = messagesArray[i]
-      let type = msg.type.substring(1) // remove "/"
+        let msg = messagesArray[i]
+        let type = msg["@type"].substring(1) // remove "/" from the start
       let involvedAddresses = utils.messageParser(msg)
   
+      delete msg["@type"]
       params = params.concat(
-        [hash, i, type, JSON.stringify(msg.value), involvedAddresses, partitionId, height]
+        [hash, i, type, JSON.stringify(msg), involvedAddresses, partitionId, height]
       )
     }
   

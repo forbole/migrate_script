@@ -5,8 +5,9 @@ const pool = new Pool()
 const query = promisify(pool.query).bind(pool)
 
 async function NewTxTable() {
-    await query(`
-      CREATE TABLE transaction_new
+    console.log("create new tx table");
+
+    await query(`CREATE TABLE transaction_new
       (
           hash         TEXT    NOT NULL,
           height       BIGINT  NOT NULL REFERENCES block (height),
@@ -28,18 +29,20 @@ async function NewTxTable() {
           logs         JSONB,
   
           /* Psql partition */
-          partition_id BIGINT NOT NULL PRIMARY KEY
-  
+          partition_id BIGINT NOT NULL,
+          PRIMARY KEY(hash, partition_id)
       )PARTITION BY LIST(partition_id);
       CREATE INDEX transaction_new_hash_index ON transaction_new (hash);
       CREATE INDEX transaction_new_height_index ON transaction_new (height);
-      CREATE INDEX transaction_new_partition_id_index ON transaction_new (partition_id);`)
+      CREATE INDEX transaction_new_partition_id_index ON transaction_new (partition_id);
+      GRANT ALL PRIVILEGES ON transaction_new TO forbole;`)
   }
   
   async function NewMsgTable() {
-    await query(`
-      CREATE TABLE message_new
-      (
+    console.log("create new msg table");
+
+    await query(`CREATE TABLE message_new
+    (
           transaction_hash            TEXT   NOT NULL,
           index                       BIGINT NOT NULL,
           type                        TEXT   NOT NULL,
@@ -47,15 +50,15 @@ async function NewTxTable() {
           involved_accounts_addresses TEXT[] NOT NULL,
   
           /* Psql partition */
-          partition_id                BIGINT REFERENCES transaction_new (partition_id),
-          height                      BIGINT NOT NULL
+          partition_id                BIGINT NOT NULL,
+          height                      BIGINT NOT NULL,
+          PRIMARY KEY(transaction_hash, index, partition_id, height)
       )PARTITION BY LIST(partition_id);
       CREATE INDEX message_new_transaction_hash_index ON message_new (transaction_hash);
       CREATE INDEX message_new_type_index ON message_new (type);
-      CREATE INDEX message_new_involved_accounts_index ON message_new (involved_accounts_addresses);`)
+      CREATE INDEX message_new_involved_accounts_index ON message_new (involved_accounts_addresses);
+      GRANT ALL PRIVILEGES ON message_new TO forbole;`)
   }
-
-  return NewMsgTable()
   
   module.exports = {
       NewTxTable,
