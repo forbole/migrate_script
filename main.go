@@ -8,7 +8,7 @@ import (
 	junodb "github.com/forbole/juno/v2/database"
 
 	"github.com/forbole/juno/v2/types/config"
-	"github.com/huichiao/migrate_script/types"
+	"github.com/huichiaotsou/migrate_script/types"
 )
 
 func main() {
