@@ -1,5 +1,13 @@
+### Migration script from regular table to partition table
+This script will do the following steps:
+- Rename the transaction table to transaction_old; message table to message_old;
+- Rename all the related index of transaction_old and message_old tables to old; 
+- Create new tables: transaction & message
+- Read from transaction_old and insert into transaction and message tables by batch;
+- For safety reason it does not drop the old tables
 
-### Add .env file: 
+### How to execute the script
+#### Add .env file: 
 ```
 PGUSER=UserName
 PGHOST=HOST
@@ -8,10 +16,13 @@ PGDATABASE=DB_NAME
 PGPORT=DB_PORT
 ```
 
-### Modify settings.js
+#### Modify settings.js
 ```javascript
-// How many rows are processed per batch
-const BATCH = 500
-// Partition Size based on heights (for example, per 100,000 blocks)
+// How many transaction rows are processed per batch
+const BATCH = 5000
+// How many block heights for 1 partition
 const PARTITION_SIZE = 100000
 ```
+
+#### Verify the schema
+- Verify if the schema in utils/create.js is correct. 

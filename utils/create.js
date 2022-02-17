@@ -1,9 +1,8 @@
 const {query} = require("./psql")
 
 async function NewTxTable() {
-  console.log("create new tx table\n");
-
-  await query(`CREATE TABLE transaction_new
+  console.log("Create new transaction table");
+  await query(`CREATE TABLE transaction
       (
           hash         TEXT    NOT NULL,
           height       BIGINT  NOT NULL REFERENCES block (height),
@@ -27,17 +26,17 @@ async function NewTxTable() {
           /* Psql partition */
           partition_id BIGINT NOT NULL
       )PARTITION BY LIST(partition_id);
-      ALTER TABLE transaction_new ADD UNIQUE (hash, partition_id);
-      CREATE INDEX transaction_new_hash_index ON transaction_new (hash);
-      CREATE INDEX transaction_new_height_index ON transaction_new (height);
-      CREATE INDEX transaction_new_partition_id_index ON transaction_new (partition_id);
-      GRANT ALL PRIVILEGES ON transaction_new TO forbole;`)
+      ALTER TABLE transaction ADD UNIQUE (hash, partition_id);
+      CREATE INDEX transaction_hash_index ON transaction (hash);
+      CREATE INDEX transaction_height_index ON transaction (height);
+      CREATE INDEX transaction_partition_id_index ON transaction (partition_id);
+      GRANT ALL PRIVILEGES ON transaction TO forbole;`)
 }
   
 async function NewMsgTable() {
-  console.log("create new msg table");
+  console.log("Create new message table");
 
-  await query(`CREATE TABLE message_new
+  await query(`CREATE TABLE message
     (
           transaction_hash            TEXT   NOT NULL,
           index                       BIGINT NOT NULL,
@@ -49,11 +48,11 @@ async function NewMsgTable() {
           partition_id                BIGINT NOT NULL,
           height                      BIGINT NOT NULL
       )PARTITION BY LIST(partition_id);
-      ALTER TABLE message_new ADD UNIQUE (transaction_hash, index, partition_id);
-      CREATE INDEX message_new_transaction_hash_index ON message_new (transaction_hash);
-      CREATE INDEX message_new_type_index ON message_new (type);
-      CREATE INDEX message_new_involved_accounts_index ON message_new (involved_accounts_addresses);
-      GRANT ALL PRIVILEGES ON message_new TO forbole;`)
+      ALTER TABLE message ADD UNIQUE (transaction_hash, index, partition_id);
+      CREATE INDEX message_transaction_hash_index ON message (transaction_hash);
+      CREATE INDEX message_type_index ON message (type);
+      CREATE INDEX message_involved_accounts_index ON message (involved_accounts_addresses);
+      GRANT ALL PRIVILEGES ON message TO forbole;`)
 }
   
 module.exports = {

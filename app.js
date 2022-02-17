@@ -1,19 +1,19 @@
 const Create = require("./utils/create")
 const Insert = require("./utils/insert")
 const utils = require("./utils/utils")
+const Alter = require("./utils/alter")
 const settings = require("./settings")
 const {query} = require("./utils/psql")
 
 async function migrate() {
-  await query(`
-    DROP TABLE IF EXISTS message_new;
-    DROP TABLE IF EXISTS transaction_new;
-    `)
-  console.log("dropped tables\n");
+
+  await Alter.oldTxTable()
+  await Alter.oldMsgTable()
+
   await Create.NewTxTable()
   await Create.NewMsgTable()
 
-  const {rows} = await query("SELECT COUNT(*) FROM transaction")
+  const {rows} = await query("SELECT COUNT(*) FROM transaction_old")
   const totolRowCount = rows[0].count
  
   console.log(`Number of rows: ${totolRowCount}`);
@@ -24,8 +24,9 @@ async function migrate() {
 
   // Handle in batch
   while(stop != true) {
-    // Select rows from original transaction table
+    // Select rows from original transaction_old table
     const txRows = await utils.selectFromOldTxTable(settings.LIMIT, offset)
+
     console.log(`\nhandling from height ${txRows[0]["height"]} to ${txRows[txRows.length-1]["height"]}`)
 
     // Insert into new tables
