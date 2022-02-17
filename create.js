@@ -5,9 +5,9 @@ const pool = new Pool()
 const query = promisify(pool.query).bind(pool)
 
 async function NewTxTable() {
-    console.log("create new tx table\n");
+  console.log("create new tx table\n");
 
-    await query(`CREATE TABLE transaction_new
+  await query(`CREATE TABLE transaction_new
       (
           hash         TEXT    NOT NULL,
           height       BIGINT  NOT NULL REFERENCES block (height),
@@ -36,12 +36,12 @@ async function NewTxTable() {
       CREATE INDEX transaction_new_height_index ON transaction_new (height);
       CREATE INDEX transaction_new_partition_id_index ON transaction_new (partition_id);
       GRANT ALL PRIVILEGES ON transaction_new TO forbole;`)
-  }
+}
   
-  async function NewMsgTable() {
-    console.log("create new msg table\n");
+async function NewMsgTable() {
+  console.log("create new msg table\n");
 
-    await query(`CREATE TABLE message_new
+  await query(`CREATE TABLE message_new
     (
           transaction_hash            TEXT   NOT NULL,
           index                       BIGINT NOT NULL,
@@ -58,9 +58,9 @@ async function NewTxTable() {
       CREATE INDEX message_new_type_index ON message_new (type);
       CREATE INDEX message_new_involved_accounts_index ON message_new (involved_accounts_addresses);
       GRANT ALL PRIVILEGES ON message_new TO forbole;`)
-  }
+}
   
-  module.exports = {
-      NewTxTable,
-      NewMsgTable,
-  }
+module.exports = {
+  NewTxTable,
+  NewMsgTable,
+}

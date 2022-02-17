@@ -14,33 +14,33 @@ const LIMIT = 500
 return migrate()
 
 async function migrate() {
-    await query(`
+  await query(`
     DROP TABLE IF EXISTS message_new;
     DROP TABLE IF EXISTS transaction_new;
     `)
-    console.log("dropped tables\n");
-    await Create.NewTxTable()
-    await Create.NewMsgTable()
+  console.log("dropped tables\n");
+  await Create.NewTxTable()
+  await Create.NewMsgTable()
 
-    const {rows} = await query("SELECT COUNT(*) FROM transaction")
-    const totolRowCount = rows[0].count
+  const {rows} = await query("SELECT COUNT(*) FROM transaction")
+  const totolRowCount = rows[0].count
  
-    console.log(`Number of rows: ${totolRowCount}`);
-    console.log(`Partition size set to ${Insert.PARTITION_SIZE}`);
+  console.log(`Number of rows: ${totolRowCount}`);
+  console.log(`Partition size set to ${Insert.PARTITION_SIZE}`);
 
-    let stop = false
-    let offset = 0
-    while(stop != true) {
+  let stop = false
+  let offset = 0
+  while(stop != true) {
 
-      const txRows = await utils.selectFromOldTxTable(LIMIT, offset)
-      console.log(`\nhandling from height ${txRows[0]["height"]} to ${txRows[txRows.length-1]["height"]}`)
+    const txRows = await utils.selectFromOldTxTable(LIMIT, offset)
+    console.log(`\nhandling from height ${txRows[0]["height"]} to ${txRows[txRows.length-1]["height"]}`)
 
-      await Insert.Transactions(txRows)
+    await Insert.Transactions(txRows)
   
-      offset += LIMIT
-      if (offset >= totolRowCount) {
-        stop = true
-      }
+    offset += LIMIT
+    if (offset >= totolRowCount) {
+      stop = true
     }
+  }
 } 
 

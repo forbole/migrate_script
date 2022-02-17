@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "lint": "eslint --ext .js --ignore-path .gitignore .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,5 +21,8 @@
   "dependencies": {
     "dotenv": "^16.0.0",
     "pg": "^8.7.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0"
   }
 }
