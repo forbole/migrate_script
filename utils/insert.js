@@ -1,12 +1,6 @@
-require('dotenv').config();
-const { Pool } = require('pg')
-const { promisify } = require("util")
-const pool = new Pool()
-const query = promisify(pool.query).bind(pool)
+const {query} = require("./psql")
 const utils = require("./utils")
-
-// ========== VERIFY ==========
-const PARTITION_SIZE = 100000
+const App = require("../app")
 
 const existTxPartition = {}
 const existMsgPartition = {}
@@ -39,9 +33,7 @@ async function Transactions(txRows) {
       signer_infos, fee, gas_wanted, gas_used, raw_log, logs
     } = row
 
-    //   console.log("inserting tx of height: ", height);
-
-    let partitionId = Math.floor(height/PARTITION_SIZE)
+    let partitionId = Math.floor(height/App.PARTITION_SIZE)
     let partitionTable = `transaction_new_${partitionId}`
     if (existTxPartition[partitionTable] != true){
       console.log("create partition table: ", partitionTable);
@@ -104,13 +96,12 @@ async function insertMessagesArray(MessagesArray) {
       msgNumberCounter += 1
 
       // for params
-      let msg = MessagesArray[i][0][j]
+      let msg = messages[j]
       let type = msg["@type"].substring(1) // remove "/" from the start
       let involvedAddresses = utils.messageParser(msg)
 
       delete msg["@type"]
       params = params.concat([hash, j, type, msg, involvedAddresses, partitionId, height])
-      // console.log("inserting msg of height:", MessagesArray[i][2]);
       stmt += "),"
     }
   }
@@ -120,5 +111,4 @@ async function insertMessagesArray(MessagesArray) {
 
 module.exports = {
   Transactions,
-  PARTITION_SIZE,
 }

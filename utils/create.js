@@ -1,8 +1,4 @@
-require('dotenv').config();
-const { Pool } = require('pg')
-const { promisify } = require("util")
-const pool = new Pool()
-const query = promisify(pool.query).bind(pool)
+const {query} = require("./psql")
 
 async function NewTxTable() {
   console.log("create new tx table\n");
@@ -39,7 +35,7 @@ async function NewTxTable() {
 }
   
 async function NewMsgTable() {
-  console.log("create new msg table\n");
+  console.log("create new msg table");
 
   await query(`CREATE TABLE message_new
     (

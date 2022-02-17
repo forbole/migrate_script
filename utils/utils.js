@@ -1,8 +1,4 @@
-require('dotenv').config();
-const { Pool } = require('pg')
-const { promisify } = require("util")
-const pool = new Pool()
-const query = promisify(pool.query).bind(pool)
+const {query} = require("./psql")
 
 async function selectFromOldTxTable(limit, offset) {
   const result = await query(`SELECT * FROM transaction ORDER BY height LIMIT ${limit} OFFSET ${offset}`)
@@ -24,22 +20,13 @@ function messageParser(msg) {
   if(msg.voter != undefined) involvedAddresses += msg.voter + ","
   if(msg.validator_dst_address != undefined) involvedAddresses += msg.validator_dst_address + ","
   if(msg.validator_src_address != undefined) involvedAddresses += msg.validator_src_address + ","
-  
-  if (msg.input != undefined) {
-    msg.input.forEach(i => {
-      involvedAddresses += i.address  + ","
-    })
-  }
-  
-  if (msg.output != undefined) {
-    msg.output.forEach(o => {
-      involvedAddresses += o.address  + ","
-    })
-  }  
+  if (msg.input != undefined) msg.input.forEach(i => {involvedAddresses += i.address  + ","})
+  if (msg.output != undefined) msg.output.forEach(o => {involvedAddresses += o.address  + ","})
   
   involvedAddresses = involvedAddresses.slice(0 , -1) + "}"
   
   if (involvedAddresses.length == 1) {
+    // involvedAddresses == "{"
     return "{}"
   }
   
