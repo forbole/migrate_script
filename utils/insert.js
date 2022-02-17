@@ -1,6 +1,6 @@
 const {query} = require("./psql")
 const utils = require("./utils")
-const App = require("../app")
+const settings = require("../settings")
 
 const existTxPartition = {}
 const existMsgPartition = {}
@@ -33,7 +33,7 @@ async function Transactions(txRows) {
       signer_infos, fee, gas_wanted, gas_used, raw_log, logs
     } = row
 
-    let partitionId = Math.floor(height/App.PARTITION_SIZE)
+    let partitionId = Math.floor(height/settings.PARTITION_SIZE)
     let partitionTable = `transaction_new_${partitionId}`
     if (existTxPartition[partitionTable] != true){
       console.log("create partition table: ", partitionTable);
