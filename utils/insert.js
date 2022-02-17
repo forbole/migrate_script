@@ -71,20 +71,17 @@ async function insertMessagesArray(MessagesArray) {
   let params = []
   let msgNumberCounter = 0
   for (let i in MessagesArray) {
-    let messages = MessagesArray[i][0]
-    let hash = MessagesArray[i][1]
-    let height = MessagesArray[i][2]
-    let partitionId = MessagesArray[i][3]
+    let [ messages, hash, height, partitionId ] = MessagesArray[i]
 
     // Create msg partition tables
-    let partitionTable = `message_new_${MessagesArray[i][3]}`
+    let partitionTable = `message_new_${partitionId}`
     if (existMsgPartition[partitionTable] != true) {
       console.log("create partition table: ", partitionTable);
-      await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_new FOR VALUES IN (${MessagesArray[i][3]})`)
+      await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_new FOR VALUES IN (${partitionId})`)
       existMsgPartition[partitionTable] = true
     }
 
-    for (let j in messages) {
+    for (let index in messages) {
       // for stmt
       let start = msgNumberCounter * cols + 1
       let end = start + cols
@@ -96,12 +93,12 @@ async function insertMessagesArray(MessagesArray) {
       msgNumberCounter += 1
 
       // for params
-      let msg = messages[j]
+      let msg = messages[index]
       let type = msg["@type"].substring(1) // remove "/" from the start
       let involvedAddresses = utils.messageParser(msg)
 
       delete msg["@type"]
-      params = params.concat([hash, j, type, msg, involvedAddresses, partitionId, height])
+      params = params.concat([hash, index, type, msg, involvedAddresses, partitionId, height])
       stmt += "),"
     }
   }
