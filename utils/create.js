@@ -24,9 +24,9 @@ async function NewTxTable() {
           logs         JSONB,
   
           /* Psql partition */
-          partition_id BIGINT NOT NULL
+          partition_id BIGINT NOT NULL,
+          UNIQUE (hash, partition_id)
       )PARTITION BY LIST(partition_id);
-      ALTER TABLE transaction ADD UNIQUE (hash, partition_id);
       CREATE INDEX transaction_hash_index ON transaction (hash);
       CREATE INDEX transaction_height_index ON transaction (height);
       CREATE INDEX transaction_partition_id_index ON transaction (partition_id);
@@ -46,16 +46,48 @@ async function NewMsgTable() {
   
           /* Psql partition */
           partition_id                BIGINT NOT NULL,
-          height                      BIGINT NOT NULL
+          height                      BIGINT NOT NULL,
+          FOREIGN KEY (transaction_hash, partition_id) REFERENCES transaction (hash, partition_id)
       )PARTITION BY LIST(partition_id);
-      ALTER TABLE message ADD UNIQUE (transaction_hash, index, partition_id);
       CREATE INDEX message_transaction_hash_index ON message (transaction_hash);
       CREATE INDEX message_type_index ON message (type);
       CREATE INDEX message_involved_accounts_index ON message (involved_accounts_addresses);
       GRANT ALL PRIVILEGES ON message TO forbole;`)
 }
+
+async function NewMessageByAddressFunc() {
+  console.log("Create new messages_by_address function");
+
+  await query(`CREATE FUNCTION messages_by_address(
+    addresses TEXT [],
+    types TEXT [],
+    "limit" BIGINT = 100,
+    "offset" BIGINT = 0
+  ) RETURNS SETOF message AS $$
+  SELECT
+      message.transaction_hash,
+      message.index,
+      message.type,
+      message.value,
+      message.involved_accounts_addresses,
+      message.partition_id,
+      message.height
+  FROM
+      message
+  WHERE
+      ( cardinality(types) = 0  OR type = ANY (types))
+      AND involved_accounts_addresses && addresses
+  ORDER BY
+      height DESC,
+      involved_accounts_addresses
+  LIMIT
+      "limit" OFFSET "offset" $$ LANGUAGE sql STABLE;
+`)
+  
+}
   
 module.exports = {
   NewTxTable,
   NewMsgTable,
+  NewMessageByAddressFunc,
 }

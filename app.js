@@ -1,4 +1,5 @@
 const Create = require("./utils/create")
+const Drop = require("./utils/drop")
 const Insert = require("./utils/insert")
 const utils = require("./utils/utils")
 const Alter = require("./utils/alter")
@@ -37,7 +38,8 @@ async function migrate() {
       stop = true
     }
   }
-
+  await Drop.DropMessageByAddressFunc()
+  await Create.NewMessageByAddressFunc()
 
 } 
 
