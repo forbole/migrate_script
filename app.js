@@ -21,8 +21,9 @@ async function migrate() {
 
   let stop = false
   let offset = 0
-  while(stop != true) {
 
+  // Handle in batch
+  while(stop != true) {
     // Select rows from original transaction table
     const txRows = await utils.selectFromOldTxTable(settings.LIMIT, offset)
     console.log(`\nhandling from height ${txRows[0]["height"]} to ${txRows[txRows.length-1]["height"]}`)
@@ -35,6 +36,8 @@ async function migrate() {
       stop = true
     }
   }
+
+
 } 
 
 return migrate()

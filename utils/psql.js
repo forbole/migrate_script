@@ -5,5 +5,5 @@ const pool = new Pool()
 const promiseQuery = promisify(pool.query).bind(pool)
 
 module.exports = {
-    query: promiseQuery
+  query: promiseQuery
 }
