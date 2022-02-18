@@ -1,3 +1,7 @@
+DROP FUNCTION IF EXISTS messages_by_address(text[],text[],bigint,bigint);
+DROP TABLE message;
+DROP TABLE transaction;
+
 ALTER TABLE transaction_old RENAME TO transaction;
 ALTER INDEX transaction_old_pkey RENAME TO transaction_pkey;
 ALTER INDEX transaction_old_hash_index RENAME TO transaction_hash_index;

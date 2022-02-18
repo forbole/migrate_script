@@ -4,6 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "prepare-tables": "node tables.js",
+    "migrate": "node migrate.js",
     "lint": "eslint --ext .js --ignore-path .gitignore . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

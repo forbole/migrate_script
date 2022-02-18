@@ -1,11 +1,17 @@
 const {query} = require("./psql")
 const utils = require("./utils")
-const settings = require("../settings")
 
 const existTxPartition = {}
 const existMsgPartition = {}
 
 async function Transactions(txRows) {
+  if (txRows.length == 0) {
+    return
+  } 
+
+  let {PARTITION_SIZE} = process.env
+  PARTITION_SIZE = parseInt(PARTITION_SIZE)
+
   // Prepare stmt
   let stmt = `INSERT INTO transaction 
     (hash, height, success, messages, memo, signatures, signer_infos, fee, gas_wanted, gas_used, raw_log, logs, partition_id) 
@@ -33,12 +39,11 @@ async function Transactions(txRows) {
       signer_infos, fee, gas_wanted, gas_used, raw_log, logs
     } = row
 
-    let partitionId = Math.floor(height/settings.PARTITION_SIZE)
+    let partitionId = Math.floor(height/PARTITION_SIZE)
     let partitionTable = `transaction_${partitionId}`
     if (existTxPartition[partitionTable] != true){
       console.log("create partition table: ", partitionTable);
       await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction FOR VALUES IN (${partitionId})`)
-
       existTxPartition[partitionTable] = true
     }
   
