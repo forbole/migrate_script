@@ -80,7 +80,7 @@ async function insertMessagesArray(MessagesArray) {
     let [ messages, hash, height, partitionId ] = MessagesArray[i]
 
     // Create msg partition tables
-    let partitionTable = `message_${partitionId}`
+    let partitionTable = `message_backup_new_${partitionId}`
     if (existMsgPartition[partitionTable] != true) {
       console.log("CREATE PARTITION TABLE ", partitionTable);
       await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_backup_new FOR VALUES IN (${partitionId})`)
