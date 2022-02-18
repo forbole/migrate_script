@@ -104,7 +104,7 @@ async function insertMessagesArray(MessagesArray) {
       let involvedAddresses = utils.messageParser(msg)
 
       delete msg["@type"]
-      params = params.concat([hash??'', index??null, type??'', msg??'', involvedAddresses??'[]', partitionId??null, height??null])
+      params = params.concat([hash, index, type, msg, involvedAddresses, partitionId, height])
       stmt += "),"
     }
   }
