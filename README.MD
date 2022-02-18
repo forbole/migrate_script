@@ -8,7 +8,7 @@ This script will do the following steps:
 - For safety reason it does not drop the old tables
 
 ### How to execute the script
-#### Add .env file with DB settings and migration settings: 
+#### 1. Add .env file with DB settings and migration settings: 
 ```shell
 // example:
 PGUSER=UserName
@@ -17,10 +17,15 @@ PGPASSWORD=PASSWORD
 PGDATABASE=DB_NAME
 PGPORT=DB_PORT
 
-
 BATCH=5000  // How many rows to be migrated per batch
 PARTITION_SIZE=100000 // The number of block heights per partition 
 ```
 
-#### Verify the schema
-- Verify if the schema in utils/create.js is correct. 
+#### 2. Verify if the transaction and message schema in utils/create.js are correct
+#### 3. Run "npm run prepare-tables", which will
+- Alter the original transaction and message tables to transaction_old & message_old
+- Alter the original indexes with adding _old tag
+- Create new tables transaction and message with new indexes
+
+#### 4. Run "npm run migrate"
+

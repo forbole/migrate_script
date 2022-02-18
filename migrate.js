@@ -13,9 +13,9 @@ async function migrate() {
   const {rows} = await query("SELECT COUNT(*) FROM transaction_old")
   const totolRowCount = rows[0].count
  
-  console.log(`Total number of rows: ${totolRowCount}`);
+  console.log(`Total count of rows: ${totolRowCount}`);
   console.log(`Migrating ${LIMIT} rows per batch`);
-  console.log(`Partition size set to ${PARTITION_SIZE}`);
+  console.log(`Partition size set to ${PARTITION_SIZE}\n`);
 
   let offset = 0
   // Handle in batch
@@ -27,15 +27,15 @@ async function migrate() {
     }
 
     // Insert into new tables
-    console.log(`\nhandling from height ${txRows[0]["height"]} to ${txRows[txRows.length-1]["height"]}`)
+    console.log(`handling from row ${offset} to ${offset + LIMIT}`)
     await Insert.Transactions(txRows)
 
     offset += LIMIT
   }
   await Drop.DropMessageByAddressFunc()
   await Create.NewMessageByAddressFunc()
-
   await end()
+  console.log("Migration done");
 } 
 
 return migrate()
