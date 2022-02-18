@@ -3,6 +3,7 @@ This script will do the following steps:
 - Rename the transaction table to transaction_old; message table to message_old
 - Rename all the related indexes of transaction_old and message_old tables with adding _old tag
 - Create new tables with indexes: transaction & message
+- Drop old function messages_by_address and create a new one
 - Read from transaction_old and insert into transaction and message tables by batch
 - For safety reason it does not drop the old tables
 
