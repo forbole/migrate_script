@@ -32,8 +32,8 @@ async function migrate() {
 
     offset += LIMIT
   }
-  await Drop.DropMessageByAddressFunc()
-  await Create.NewMessageByAddressFunc()
+  // await Drop.DropMessageByAddressFunc()
+  // await Create.NewMessageByAddressFunc()
   await end()
   console.log("\n--- Migration completed ---");
 } 

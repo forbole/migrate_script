@@ -12,22 +12,22 @@ async function Transactions(txRows) {
   let {PARTITION_SIZE} = process.env
   PARTITION_SIZE = parseInt(PARTITION_SIZE)
 
-  // Prepare stmt
-  let stmt = `INSERT INTO transaction 
-    (hash, height, success, messages, memo, signatures, signer_infos, fee, gas_wanted, gas_used, raw_log, logs, partition_id) 
-    VALUES `
-  const cols = 13
-  for (let i in txRows) {
-    stmt += "("
-    let start = i * cols + 1
-    let end = start + cols
-    for (let j = start; j< end; j++) {
-      stmt += `$${j},`
-    }
-    stmt = stmt.slice(0, -1) // remove trailing
-    stmt += "),"
-  }
-  stmt = stmt.slice(0, -1) // remove trailing
+  // // Prepare stmt
+  // let stmt = `INSERT INTO transaction 
+  //   (hash, height, success, messages, memo, signatures, signer_infos, fee, gas_wanted, gas_used, raw_log, logs, partition_id) 
+  //   VALUES `
+  // const cols = 13
+  // for (let i in txRows) {
+  //   stmt += "("
+  //   let start = i * cols + 1
+  //   let end = start + cols
+  //   for (let j = start; j< end; j++) {
+  //     stmt += `$${j},`
+  //   }
+  //   stmt = stmt.slice(0, -1) // remove trailing
+  //   stmt += "),"
+  // }
+  // stmt = stmt.slice(0, -1) // remove trailing
   
   // Prepare params
   let params = []
@@ -40,12 +40,12 @@ async function Transactions(txRows) {
     } = row
 
     let partitionId = Math.floor(height/PARTITION_SIZE)
-    let partitionTable = `transaction_${partitionId}`
-    if (existTxPartition[partitionTable] != true){
-      console.log("CREATE PARTITION TABLE ", partitionTable);
-      await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction FOR VALUES IN (${partitionId})`)
-      existTxPartition[partitionTable] = true
-    }
+    // let partitionTable = `transaction_${partitionId}`
+    // if (existTxPartition[partitionTable] != true){
+    //   console.log("CREATE PARTITION TABLE ", partitionTable);
+    //   await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction FOR VALUES IN (${partitionId})`)
+    //   existTxPartition[partitionTable] = true
+    // }
   
     let sigs = ""
     signatures.forEach(el => sigs += el + ",")
@@ -60,16 +60,16 @@ async function Transactions(txRows) {
     forMessages.push([messages, hash, height, partitionId])
   }
   
-  stmt += 'ON CONFLICT DO NOTHING'
+  // stmt += 'ON CONFLICT DO NOTHING'
   // Insert transaction
-  await query(stmt, params)
+  // await query(stmt, params)
   await insertMessagesArray(forMessages)
 }
 
 async function insertMessagesArray(MessagesArray) {
 
   // Prepare stmt
-  let stmt = `INSERT INTO message 
+  let stmt = `INSERT INTO message_backup_new 
     (transaction_hash, index, type, value, involved_accounts_addresses, partition_id, height) 
     VALUES `
   const cols = 7
@@ -83,7 +83,7 @@ async function insertMessagesArray(MessagesArray) {
     let partitionTable = `message_${partitionId}`
     if (existMsgPartition[partitionTable] != true) {
       console.log("CREATE PARTITION TABLE ", partitionTable);
-      await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message FOR VALUES IN (${partitionId})`)
+      await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message_backup_new FOR VALUES IN (${partitionId})`)
       existMsgPartition[partitionTable] = true
     }
 
@@ -104,7 +104,7 @@ async function insertMessagesArray(MessagesArray) {
       let involvedAddresses = utils.messageParser(msg)
 
       delete msg["@type"]
-      params = params.concat([hash, index, type, msg, involvedAddresses, partitionId, height])
+      params = params.concat([hash??'', index??null, type??'', msg??'', involvedAddresses??'[]', partitionId??null, height??null])
       stmt += "),"
     }
   }
