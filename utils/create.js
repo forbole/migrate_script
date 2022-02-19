@@ -1,7 +1,9 @@
+require('dotenv').config();
 const {query} = require("./psql")
+let { PGUSER } = process.env
 
 async function NewTxTable() {
-  console.log("Create new transaction table");
+  console.log("CREATE TABLE transaction");
   await query(`CREATE TABLE transaction
       (
           hash         TEXT    NOT NULL,
@@ -30,11 +32,11 @@ async function NewTxTable() {
       CREATE INDEX transaction_hash_index ON transaction (hash);
       CREATE INDEX transaction_height_index ON transaction (height);
       CREATE INDEX transaction_partition_id_index ON transaction (partition_id);
-      GRANT ALL PRIVILEGES ON transaction TO forbole;`)
+      GRANT ALL PRIVILEGES ON transaction TO ${PGUSER};`)
 }
   
 async function NewMsgTable() {
-  console.log("Create new message table");
+  console.log("CREATE TABLE message");
 
   await query(`CREATE TABLE message
     (
@@ -52,11 +54,11 @@ async function NewMsgTable() {
       CREATE INDEX message_transaction_hash_index ON message (transaction_hash);
       CREATE INDEX message_type_index ON message (type);
       CREATE INDEX message_involved_accounts_index ON message (involved_accounts_addresses);
-      GRANT ALL PRIVILEGES ON message TO forbole;`)
+      GRANT ALL PRIVILEGES ON message TO  ${PGUSER};`)
 }
 
 async function NewMessageByAddressFunc() {
-  console.log("Create new messages_by_address function");
+  console.log("CREATE FUNCTION messages_by_address()");
 
   await query(`CREATE FUNCTION messages_by_address(
     addresses TEXT [],

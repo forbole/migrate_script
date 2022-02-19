@@ -3,6 +3,7 @@ const Alter = require("./utils/alter")
 const {end} = require("./utils/psql")
 
 async function prepareTables() {
+  console.log(`--- Preparing tables ---\n`)
 
   await Alter.oldTxTable()
   await Alter.oldMsgTable()
@@ -11,6 +12,8 @@ async function prepareTables() {
   await Create.NewMsgTable()
 
   await end()
+  console.log(`\n--- Preparing tables completed ---\n`)
+
   
 } 
 

@@ -42,7 +42,7 @@ async function Transactions(txRows) {
     let partitionId = Math.floor(height/PARTITION_SIZE)
     let partitionTable = `transaction_${partitionId}`
     if (existTxPartition[partitionTable] != true){
-      console.log("create partition table: ", partitionTable);
+      console.log("CREATE PARTITION TABLE ", partitionTable);
       await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF transaction FOR VALUES IN (${partitionId})`)
       existTxPartition[partitionTable] = true
     }
@@ -82,7 +82,7 @@ async function insertMessagesArray(MessagesArray) {
     // Create msg partition tables
     let partitionTable = `message_${partitionId}`
     if (existMsgPartition[partitionTable] != true) {
-      console.log("create partition table: ", partitionTable);
+      console.log("CREATE PARTITION TABLE ", partitionTable);
       await query(`CREATE TABLE IF NOT EXISTS ${partitionTable} PARTITION OF message FOR VALUES IN (${partitionId})`)
       existMsgPartition[partitionTable] = true
     }

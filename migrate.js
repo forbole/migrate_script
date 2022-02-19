@@ -27,7 +27,7 @@ async function migrate() {
     }
 
     // Insert into new tables
-    console.log(`handling from row ${offset} to ${offset + LIMIT}`)
+    console.log(`--- Migrating data from row ${offset} to ${offset + LIMIT} --- \n`)
     await Insert.Transactions(txRows)
 
     offset += LIMIT
@@ -35,7 +35,7 @@ async function migrate() {
   await Drop.DropMessageByAddressFunc()
   await Create.NewMessageByAddressFunc()
   await end()
-  console.log("Migration done");
+  console.log("\n--- Migration completed ---");
 } 
 
 return migrate()
