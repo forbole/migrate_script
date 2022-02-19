@@ -22,10 +22,16 @@ PARTITION_SIZE=100000 // The number of block heights per partition
 ```
 
 #### 2. Verify if the transaction and message schema in utils/create.js are correct
-#### 3. Run "npm run prepare-tables", which will
+#### 3. Add to the custom account parser in utils/messageParse.js if any
+```javascript
+let customAccountParser = [ // take desmos as example
+	"receiver", "user", "counterparty", "blocker", "blocked",
+]
+```
+#### 4. Run "npm run prepare-tables", which will
 - Alter the original transaction and message tables to transaction_old & message_old
 - Alter the original indexes with adding _old tag
 - Create new tables transaction and message with new indexes
 
-#### 4. Run "npm run migrate"
+#### 5. Run "npm run migrate"
 
